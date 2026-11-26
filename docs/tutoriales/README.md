@@ -73,3 +73,28 @@ curl -X POST http://127.0.0.1:4100/_fixture/scenario \
 - [Plan Maestro](../../PLAN_MAESTRO.md): §1.3 (resultado observable), §18 (etapas) y §19 (backlog).
 - Evidencias de lo que ya se verificó: [PV-003](../qa/PV-003-fixture.md),
   [PV-005](../qa/PV-005-verificacion.md), [PV-006](../security/PV-006-aislamiento.md).
+
+## 6. Problemas frecuentes
+
+**«Demasiados intentos fallidos».**
+El límite es de 5 fallos por correo e IP cada 15 minutos; los accesos correctos no consumen ese
+presupuesto. Espera la ventana, usa otra cuenta del seed o reinicia `pnpm dev` (el contador vive en
+memoria del proceso). Se ajusta con `LOGIN_RATE_LIMIT_MAX` y `LOGIN_RATE_LIMIT_WINDOW_MINUTES` en el
+`.env`; súbelo solo en pruebas automatizadas.
+
+**«No se pudo iniciar sesión. Revisa los registros del servidor».**
+El dashboard no pudo autenticar por un fallo inesperado (lo habitual: PostgreSQL apagado o sin
+`.env`). Comprueba en orden:
+
+```sh
+docker compose -f infra/compose/docker-compose.dev.yml ps   # postgres healthy
+pnpm db:deploy && pnpm db:seed                              # migraciones y cuentas
+```
+
+El proyecto usa **un solo `.env` en la raíz**; `next.config.mjs` y `apps/api/src/main.ts` lo cargan
+al arrancar. Si ejecutas una app por separado fuera de `pnpm dev`, exporta `DATABASE_URL` en tu
+shell.
+
+**«Tu sesión expiró» o vuelve al acceso al abrir `/cuenta`.**
+Es el comportamiento esperado si revocaste las sesiones (`sessionVersion` cambió) o si el rol ya no
+coincide. Vuelve a entrar; el intento queda auditado en `AuditEvent`.
