@@ -1,0 +1,15 @@
+# Tablero de arranque
+
+Actualiza el estado y el responsable en esta tabla al tomar o entregar una tarea. Estados del plan: Backlog, Ready, In Progress, Review, Blocked y Done. Las dependencias se satisfacen con trabajo integrado. G0 sigue pendiente (no hay entrevistas); **G1 tiene la evidencia técnica completa (PV-003/005/006) y espera decisión del PO**.
+
+| Tarea | Estado | Responsable | Depende de | Criterio para revisión |
+|---|---|---|---|---|
+| PV-001 · Validar el problema | Ready | Por asignar | — | Registrar alternativas y entrevistas anonimizadas según §2.3–2.5. Presentar ejemplos recientes, costo y acceso a pruebas al PO para decidir G0. |
+| PV-002 · Delimitar el piloto | Ready | Por asignar | — | Someter a revisión del PO el segmento inicial, hipótesis, alcance P0, política de destinos y guion de demo con datos sintéticos. Registrar la decisión. |
+| PV-003 · Preparar fixture V1/V2 | Review | Fábrica · rol verificacion | PV-002 (adelantado por instrucción del PO) | Implementado en `apps/demo-target`: V1/V2 con seed estable, reset, 8 escenarios y API de operador con token; 25 pruebas `node:test` en verde. Evidencia en [QA](../qa/PV-003-fixture.md). Falta aceptación del PO. |
+| PV-004 · Probar captura MV3 | Backlog | Por asignar | PV-003 | Demostrar inicio con consentimiento, pausa y redacción. Verificar que el valor canario no llega a eventos persistidos, logs ni artefactos (T-03/T-04). |
+| PV-005 · Probar verificación | Review | Fábrica · rol verificacion | PV-003 | Spike en `tests/verification`: plan semántico + checkpoint pasa en V1 y falla en V2 con `LOCATOR_NOT_FOUND`, ambigüedad e indisponibilidad clasificadas según §12.4 y evidencia depurada. 104 unitarias + 12 specs Playwright en verde. Evidencia en [QA](../qa/PV-005-verificacion.md). |
+| PV-006 · Comprobar aislamiento | Review | Fábrica · rol seguridad | PV-005 | Egress deny-by-default con CDP `Fetch` (redirect ajena bloqueada en 23–30 ms, `DOMAIN_DENIED`), fetch y WebSocket abortados, clic «Eliminar artículo» bloqueado con `destructiveClicks: 0`, política de origen endurecida y evidencia sin fugas. Evidencia en [Seguridad](../security/PV-006-aislamiento.md). |
+| PV-007 · Bootstrap del monorepo | Review | Fábrica de software (por solicitud del PO) | 004–006; ejecutada **antes de G1** por instrucción directa del PO | Instalación limpia, lint, tipos, pruebas, build y e2e en verde. Estructura de backend y frontend documentada en [arquitectura](../architecture/estructura.md) y ADR-001/ADR-009; interfaz con Tailwind 4 + shadcn/ui ([ADR-010](../adr/ADR-010-tailwind-shadcn-ui.md)). No sustituye la decisión G1 ni autoriza usar procedimientos reales. |
+
+Para pasar a fundación, registrar la decisión G1 y comprobar las dependencias de PV-007 en la sección 19 del plan.
