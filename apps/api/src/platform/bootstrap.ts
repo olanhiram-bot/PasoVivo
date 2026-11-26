@@ -22,7 +22,7 @@ export async function createApplication(): Promise<INestApplication> {
   app.enableCors({
     origin: config.corsOrigins.length > 0 ? config.corsOrigins : false,
     credentials: true,
-    allowedHeaders: ['content-type', 'x-request-id'],
+    allowedHeaders: ['content-type', 'x-request-id', 'authorization'],
     exposedHeaders: ['x-request-id'],
   })
   app.enableShutdownHooks()
@@ -32,6 +32,13 @@ export async function createApplication(): Promise<INestApplication> {
     `PasoVivo API ${config.version} · entorno ${config.environment} · CORS ${config.corsOrigins.join(', ') || 'desactivado'}`,
     'Bootstrap',
   )
+
+  if (config.serviceSecretIsDevelopmentDefault) {
+    Logger.warn(
+      'API_SERVICE_SECRET no está definido: se usa el secreto de desarrollo. Configúralo fuera de local.',
+      'Bootstrap',
+    )
+  }
 
   return app
 }

@@ -9,6 +9,10 @@ const config: ApiConfig = {
   logLevel: 'info',
   corsOrigins: [],
   docsEnabled: false,
+  serviceSecret: 'secreto-de-pruebas-para-el-jwt-de-servicio',
+  serviceIssuer: 'pasovivo-web',
+  serviceAudience: 'pasovivo-api',
+  serviceSecretIsDevelopmentDefault: true,
 }
 
 describe('HealthService', () => {
