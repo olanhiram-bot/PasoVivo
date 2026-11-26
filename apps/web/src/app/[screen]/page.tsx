@@ -9,8 +9,11 @@ type ScreenPageProps = { params: Promise<{ screen: string }> }
 /** Solo existen las pantallas declaradas en el prototipo: cualquier otro id es 404. */
 export const dynamicParams = false
 
+/** `/login` deja de ser pantalla del prototipo: es el acceso real (PV-011). */
+const PROTOTYPE_SCREEN_IDS = screenIds.filter((screen) => screen !== 'login')
+
 export function generateStaticParams(): { screen: string }[] {
-  return screenIds.map((screen) => ({ screen }))
+  return PROTOTYPE_SCREEN_IDS.map((screen) => ({ screen }))
 }
 
 export async function generateMetadata({ params }: ScreenPageProps): Promise<Metadata> {

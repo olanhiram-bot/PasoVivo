@@ -95,8 +95,14 @@ const STATUS: readonly StatusRow[] = [
   },
   {
     capability: 'Inicio de sesión y roles',
-    state: 'simulated',
-    detail: 'Sin autenticación todavía: cualquiera abre el prototipo.',
+    state: 'real',
+    detail:
+      'Auth.js con correo y contraseña; el API resuelve usuario, espacio y rol en PostgreSQL. Sesiones revocables.',
+  },
+  {
+    capability: 'Tu cuenta (/cuenta)',
+    state: 'real',
+    detail: 'Identidad real, cierre de sesión y revocación de todas las sesiones.',
   },
   {
     capability: 'Procedimientos y versiones guardados',
@@ -112,7 +118,12 @@ const STATUS: readonly StatusRow[] = [
 
 const TOUR: readonly { title: string; href: string; what: string }[] = [
   {
-    title: 'Entra al panel',
+    title: 'Inicia sesión en tu cuenta',
+    href: '/cuenta',
+    what: 'Identidad real resuelta por el API: usuario, espacio, rol y versión de sesión.',
+  },
+  {
+    title: 'Entra al panel del prototipo',
     href: '/dashboard',
     what: 'Cuatro indicadores: procedimientos, verificados, cambios detectados y sin verificar.',
   },

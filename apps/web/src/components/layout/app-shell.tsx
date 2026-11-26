@@ -1,7 +1,8 @@
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import type { ReactNode } from 'react'
+import type { Role } from '@pasovivo/contracts'
 import { ChevronRight } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { Sidebar } from './sidebar'
 
 type AppShellProps = {
@@ -9,10 +10,28 @@ type AppShellProps = {
   activeNav?: string
   /** Texto de la miga de pan; por defecto, la sección activa. */
   breadcrumb?: string
+  /** Identidad real cuando la página ya resolvió la sesión. */
+  user?: { name: string; role: Role }
+  workspaceName?: string
   children: ReactNode
 }
 
-export function AppShell({ activeNav, breadcrumb, children }: AppShellProps) {
+const ROLE_LABEL: Record<Role, string> = {
+  ADMIN: 'Administración',
+  EDITOR: 'Edición',
+  READER: 'Lectura',
+}
+
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('')
+}
+
+export function AppShell({ activeNav, breadcrumb, user, workspaceName, children }: AppShellProps) {
   const current = breadcrumb ?? activeNav ?? 'Estado del sistema'
 
   return (
@@ -24,7 +43,7 @@ export function AppShell({ activeNav, breadcrumb, children }: AppShellProps) {
         Saltar al contenido
       </a>
 
-      <Sidebar activeNav={activeNav} />
+      <Sidebar activeNav={activeNav} workspaceName={workspaceName} />
 
       <div className="md:pl-60">
         <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b bg-background/85 px-4 backdrop-blur md:px-8">
@@ -51,9 +70,16 @@ export function AppShell({ activeNav, breadcrumb, children }: AppShellProps) {
                 className="grid size-7 place-items-center rounded-full bg-accent text-[11px] font-semibold text-accent-foreground ring-1 ring-border"
                 aria-hidden="true"
               >
-                ED
+                {user ? initials(user.name) : 'ED'}
               </span>
-              <span className="text-[13px] font-medium max-sm:hidden">Editor</span>
+              <span className="text-[13px] font-medium max-sm:hidden">
+                {user ? user.name : 'Editor'}
+              </span>
+              {user ? (
+                <Badge variant="secondary" className="max-sm:hidden">
+                  {ROLE_LABEL[user.role]}
+                </Badge>
+              ) : null}
             </div>
           </div>
         </header>

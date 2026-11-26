@@ -18,13 +18,15 @@ export class ApiClientError extends Error {
   }
 }
 
-type RequestOptions = { timeoutMs?: number }
+export type RequestOptions = {
+  timeoutMs?: number
+  /** JWT de servicio; obligatorio para rutas autenticadas. */
+  token?: string
+  method?: 'GET' | 'POST'
+  body?: unknown
+}
 
-/**
- * GET tipado: valida la respuesta contra el esquema del paquete de contratos.
- * Una respuesta fuera de contrato se trata como error, no como dato válido.
- */
-export async function apiGet<TOutput>(
+async function apiRequest<TOutput>(
   path: string,
   schema: ZodType<TOutput>,
   options: RequestOptions = {},
@@ -32,10 +34,16 @@ export async function apiGet<TOutput>(
   const { apiBaseUrl, apiTimeoutMs } = serverEnv()
   const url = `${apiBaseUrl}${path}`
 
+  const headers: Record<string, string> = { accept: 'application/json' }
+  if (options.token) headers.authorization = `Bearer ${options.token}`
+  if (options.body !== undefined) headers['content-type'] = 'application/json'
+
   let response: Response
   try {
     response = await fetch(url, {
-      headers: { accept: 'application/json' },
+      method: options.method ?? 'GET',
+      headers,
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
       cache: 'no-store',
       signal: AbortSignal.timeout(options.timeoutMs ?? apiTimeoutMs),
     })
@@ -65,4 +73,20 @@ export async function apiGet<TOutput>(
   }
 
   return parsed.data
+}
+
+export function apiGet<TOutput>(
+  path: string,
+  schema: ZodType<TOutput>,
+  options: RequestOptions = {},
+): Promise<TOutput> {
+  return apiRequest(path, schema, { ...options, method: 'GET' })
+}
+
+export function apiPost<TOutput>(
+  path: string,
+  schema: ZodType<TOutput>,
+  options: RequestOptions = {},
+): Promise<TOutput> {
+  return apiRequest(path, schema, { ...options, method: 'POST' })
 }

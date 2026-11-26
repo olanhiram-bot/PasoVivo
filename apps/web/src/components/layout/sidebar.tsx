@@ -22,7 +22,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { label: 'Configuración', href: '/settings', icon: Settings },
 ]
 
-export function Sidebar({ activeNav }: { activeNav?: string }) {
+export function Sidebar({
+  activeNav,
+  workspaceName = 'Equipo Operaciones',
+}: {
+  activeNav?: string
+  workspaceName?: string
+}) {
   return (
     <aside className="border-b border-sidebar-border bg-sidebar text-sidebar-foreground md:fixed md:inset-y-0 md:left-0 md:flex md:w-60 md:flex-col md:overflow-y-auto md:border-r md:border-b-0">
       <div className="flex items-center gap-2.5 px-3 py-3 md:px-4 md:py-4">
@@ -38,7 +44,7 @@ export function Sidebar({ activeNav }: { activeNav?: string }) {
         <p className="font-mono text-[10px] tracking-[0.14em] text-sidebar-foreground/45 uppercase">
           Espacio
         </p>
-        <p className="mt-0.5 text-[13px] font-medium">Equipo Operaciones</p>
+        <p className="mt-0.5 text-[13px] font-medium">{workspaceName}</p>
       </div>
 
       <nav

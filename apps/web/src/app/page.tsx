@@ -1,5 +1,9 @@
+import { currentSession } from '@/lib/auth/session'
 import { redirect } from 'next/navigation'
 
-export default function Home() {
-  redirect('/login')
+export const dynamic = 'force-dynamic'
+
+export default async function Home() {
+  const session = await currentSession()
+  redirect(session ? '/cuenta' : '/login')
 }
