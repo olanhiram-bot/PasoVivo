@@ -14,12 +14,29 @@ permissions:
 
 env:
   NODE_VERSION: '22'
+  DATABASE_URL: postgresql://pasovivo:pasovivo_local@127.0.0.1:5432/pasovivo?schema=public
+  API_SERVICE_SECRET: secreto-ci-de-servicio-con-longitud-suficiente
+  NEXTAUTH_SECRET: secreto-ci-de-authjs-con-longitud-suficiente
 
 jobs:
   calidad:
     name: Lint, tipos, pruebas y build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: pasovivo
+          POSTGRES_USER: pasovivo
+          POSTGRES_PASSWORD: pasovivo_local
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pasovivo -d pasovivo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
     steps:
       - uses: actions/checkout@v4
 
@@ -43,6 +60,12 @@ jobs:
             exit 1
           fi
 
+      - name: Preparar base de datos
+        run: |
+          printf 'DATABASE_URL=%s\n' "$DATABASE_URL" > .env
+          pnpm db:deploy
+          pnpm db:seed
+
       - run: pnpm lint
       - run: pnpm format:check
       - run: pnpm typecheck
@@ -53,7 +76,21 @@ jobs:
     name: E2E de la demo (Chromium)
     needs: calidad
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: pasovivo
+          POSTGRES_USER: pasovivo
+          POSTGRES_PASSWORD: pasovivo_local
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pasovivo -d pasovivo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
     steps:
       - uses: actions/checkout@v4
 
@@ -68,6 +105,13 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
+
+      - name: Preparar base de datos
+        run: |
+          printf 'DATABASE_URL=%s\n' "$DATABASE_URL" > .env
+          pnpm db:deploy
+          pnpm db:seed
+
       - run: pnpm build
 
       - name: Instalar Chromium de Playwright
