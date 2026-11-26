@@ -1,0 +1,25 @@
+{
+  "name": "@pasovivo/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Esquemas y tipos compartidos del API v1 de PasoVivo.",
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^5.1.2"
+  }
+}
