@@ -1,0 +1,33 @@
+{
+  "name": "@pasovivo/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dashboard de PasoVivo (Next.js, App Router y componentes por feature).",
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1 --port 3000",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1 --port 3000",
+    "typecheck": "next typegen && tsc --noEmit",
+    "clean": "rm -rf .next"
+  },
+  "dependencies": {
+    "@pasovivo/contracts": "workspace:*",
+    "@radix-ui/react-slot": "^1.5.0",
+    "@tailwindcss/postcss": "^4.3.5",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.81.0",
+    "next": "^16.4.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwind-merge": "^3.7.1",
+    "tailwindcss": "^4.3.5",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.11",
+    "@types/react": "^19.3.3",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "^5.9.3"
+  }
+}
