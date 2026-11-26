@@ -21,7 +21,13 @@
     "typecheck:verification": "tsc -p tsconfig.verification.json",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "db:migrate": "pnpm --filter @pasovivo/database db:migrate",
+    "db:deploy": "pnpm --filter @pasovivo/database db:deploy",
+    "db:seed": "pnpm --filter @pasovivo/database db:seed",
+    "db:status": "pnpm --filter @pasovivo/database db:status",
+    "db:up": "docker compose -f infra/compose/docker-compose.dev.yml up -d",
+    "db:down": "docker compose -f infra/compose/docker-compose.dev.yml down"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
@@ -36,5 +42,13 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.74.0",
     "vitest": "3.2.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "esbuild"
+    ]
   }
 }

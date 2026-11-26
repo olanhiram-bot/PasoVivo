@@ -1,0 +1,91 @@
+// Esquema de identidad de PasoVivo (PV-010 · §8.1).
+// Solo se modela lo que existe: identidad, espacio, membresía con rol y auditoría.
+// Procedimientos, capturas y verificación llegan con sus issues (PV-019/PV-022/PV-028).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  READER
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+model User {
+  id String @id @default(cuid())
+
+  /// Correo normalizado a minúsculas; la unicidad es la identidad.
+  email        String     @unique
+  name         String
+  /// Hash `scrypt$N$r$p$sal$hash`; nunca contraseña en claro.
+  passwordHash String
+  status       UserStatus @default(ACTIVE)
+
+  /// Versión de sesión: al incrementarla se revocan todas las sesiones (FR-01).
+  sessionVersion Int @default(0)
+
+  lastLoginAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  memberships Membership[]
+  auditEvents AuditEvent[] @relation("AuditActor")
+
+  @@index([status])
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  timezone  String   @default("America/Mexico_City")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+  auditEvents AuditEvent[]
+}
+
+model Membership {
+  id          String   @id @default(cuid())
+  userId      String
+  workspaceId String
+  role        Role
+  createdAt   DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId, role])
+}
+
+/// Registro append-only de acciones privilegiadas y accesos denegados (§15.1, PV-041).
+model AuditEvent {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  actorId      String?
+  action       String
+  resourceType String
+  resourceId   String?
+  outcome      String
+  /// Metadatos mínimos y depurados; nunca secretos ni contenido de formularios.
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  actor     User?     @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, createdAt])
+  @@index([actorId, createdAt])
+}

@@ -1,0 +1,31 @@
+# Servicios de desarrollo de PasoVivo.
+# Solo base de datos por ahora: Redis y el runner llegan con PV-029.
+# Uso: docker compose -f infra/compose/docker-compose.dev.yml up -d
+name: pasovivo-dev
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: pasovivo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pasovivo}
+      POSTGRES_USER: ${POSTGRES_USER:-pasovivo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pasovivo_local}
+      # Los datos son sintéticos; se fija la zona para que las fechas sean predecibles.
+      TZ: UTC
+    ports:
+      # Solo loopback: la base no se expone a la red local.
+      - 127.0.0.1:5432:5432
+    volumes:
+      - pasovivo-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-pasovivo} -d ${POSTGRES_DB:-pasovivo}']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+volumes:
+  pasovivo-postgres:
+    name: pasovivo-postgres

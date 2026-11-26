@@ -57,6 +57,11 @@ export default tseslint.config(
     rules: { 'no-console': 'off' },
   },
   {
+    // Los seeds y scripts de línea de comandos informan por stdout; no forman parte del producto.
+    files: ['**/prisma/seed.ts', '**/scripts/**/*.{ts,mjs}'],
+    rules: { 'no-console': 'off' },
+  },
+  {
     files: ['**/*.mjs'],
     languageOptions: { sourceType: 'module' },
   },

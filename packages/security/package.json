@@ -1,0 +1,23 @@
+{
+  "name": "@pasovivo/security",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Primitivas de seguridad compartidas: KDF de contraseñas y tokens opacos.",
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.11",
+    "typescript": "^5.9.3",
+    "vitest": "^5.1.2"
+  }
+}
