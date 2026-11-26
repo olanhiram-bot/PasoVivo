@@ -102,9 +102,12 @@ El seed es idempotente y usa datos sintéticos; las contraseñas de desarrollo s
 `.env.example` y se pueden sustituir por entorno. Las tablas de procedimientos, capturas y runs
 llegan con sus issues (§8.1), no antes.
 
-La autenticación se decide en [ADR-011](../adr/ADR-011-autenticacion-authjs.md): Auth.js v4 con
-`Credentials` y sesión JWT, revocación por `sessionVersion`, y un JWT de servicio firmado por el
-dashboard para llamar al API. Todavía no está implementada (PV-011).
+La autenticación sigue [ADR-011](../adr/ADR-011-autenticacion-authjs.md) e implementa PV-011:
+Auth.js v4 con `Credentials` en `apps/web` (`/login`, `/cuenta`, `/api/auth/*`), sesión JWT con
+`sessionVersion`, y un JWT de servicio de 60 s firmado en el servidor para llamar al API. El API
+resuelve el actor contra PostgreSQL (`SessionGuard`), valida la versión de sesión y audita los
+rechazos; las mutaciones exigen `Origin` autorizado. Extensión y runner no usan Auth.js: tendrán
+tokens opacos propios (PV-014/PV-029).
 
 ## Seguridad y operación
 

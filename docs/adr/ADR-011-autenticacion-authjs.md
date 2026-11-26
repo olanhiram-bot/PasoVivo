@@ -1,6 +1,6 @@
 # ADR-011 · Autenticación con Auth.js (NextAuth) y separación de sesiones
 
-- Estado: **propuesto** (decisión del PO: adoptar Auth.js; falta aceptación formal del ADR)
+- Estado: **aceptado** · implementado en PV-011 (aprobado por el PO el 2026-11-26)
 - Fecha: 2026-11-26 · Responsable: fábrica de software · Revisión: PO
 - Tarea y requisito relacionados: PV-011, FR-01, §9.1, §15.1, §15.3, §16.2 T-01
 

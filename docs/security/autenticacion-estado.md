@@ -109,3 +109,20 @@ decide en el mismo ADR antes de escribir código.
 Cerrar G1 (decisión del PO), ejecutar PV-008/PV-010 en la ola 2 y, con la base de datos operativa,
 PV-011 según la opción elegida en `ADR-011`. Sin esa decisión, escribir código de autenticación
 sería elegir arquitectura por la puerta de atrás.
+
+## 11. Implementado en PV-011 (actualización)
+
+La decisión del PO fue adoptar **Auth.js** ([ADR-011](../adr/ADR-011-autenticacion-authjs.md)) y ya
+está implementado:
+
+- `apps/web`: `/login` (formulario real), `/cuenta` (identidad, cierre de sesión, revocación),
+  `/api/auth/*` (Auth.js), `authorize()` contra PostgreSQL con `scrypt` y rate limit de intentos.
+- `apps/api`: `SessionGuard` que verifica el JWT de servicio, resuelve el actor contra la base de
+  datos, compara `sessionVersion` y audita los rechazos; `OriginGuard` global para mutaciones;
+  `GET /api/v1/auth/me` y `POST /api/v1/auth/session/revoke`.
+- Evidencia: 42 pruebas de API (contrato, JWT expirado/forjado, rol y espacio incorrectos, revocación,
+  CSRF, auditoría) y 20 e2e en Chromium (acceso, error de credenciales, rol visible, cierre y
+  revocación). El dashboard ya no entra sin sesión en `/cuenta`.
+
+Pendiente de esa misma línea: PV-013 (entornos autorizados), permisos por objeto en procedimientos
+(cuando existan) y el rate limit distribuido (Redis, PV-029).

@@ -25,10 +25,12 @@ pnpm dev
 
 Cuentas del seed, solo para uso local: `admin@pasovivo.test`, `editor@pasovivo.test` y
 `lector@pasovivo.test` con contraseñas de desarrollo (`admin-local-2026`, `editor-local-2026`,
-`lector-local-2026`); se pueden cambiar con `SEED_*_PASSWORD` antes de sembrar. El inicio de sesión
-real todavía no está conectado: llega con PV-011 (Auth.js, ver [ADR-011](docs/adr/ADR-011-autenticacion-authjs.md)).
+`lector-local-2026`); se cambian con `SEED_*_PASSWORD` antes de sembrar. El acceso ya es real
+(Auth.js, ver [ADR-011](docs/adr/ADR-011-autenticacion-authjs.md)): inicia sesión en `/login` y
+`/cuenta` muestra tu identidad resuelta por el API desde PostgreSQL.
 
-- Dashboard: <http://127.0.0.1:3000/login> · panel directo en <http://127.0.0.1:3000/dashboard>
+- Acceso real: <http://127.0.0.1:3000/login> · tu cuenta autenticada: <http://127.0.0.1:3000/cuenta>
+- Prototipo visual: <http://127.0.0.1:3000/dashboard> · guía: <http://127.0.0.1:3000/guia>
 - Diagnóstico real del API: <http://127.0.0.1:3000/status>
 - API: <http://127.0.0.1:3001/api/v1/health> · OpenAPI en <http://127.0.0.1:3001/api/docs>
 
@@ -97,10 +99,14 @@ son lucide y las etiquetas de dato van en monoespaciada. Detalle en
   paginación por cursor). Datos sintéticos en memoria detrás del puerto `ProcedureRepository`.
 - **Contratos**: un único cuerpo de error (`code`, `message`, `status`, `requestId`, `details`) y
   validación de respuestas en el cliente del dashboard.
+- **Autenticación**: Auth.js con `Credentials` (correo y contraseña), sesión JWT revocable por
+  `sessionVersion` y JWT de servicio de 60 s para llamar al API. `/cuenta` demuestra la cadena
+  completa; cerrar sesión y revocar todas las sesiones funcionan.
 - **Datos**: PostgreSQL 17 en Compose y esquema Prisma de identidad (`User`, `Workspace`,
-  `Membership`, `AuditEvent`) con migración `init_identity` y seed sintético.
-- **Pendiente**: login real y roles (PV-011, Auth.js decidido en ADR-011), tablas de procedimientos y
-  versiones (PV-022), captura con extensión (PV-014–PV-021), runner Playwright (PV-028–PV-036).
+  `Membership`, `AuditEvent`) con migración `init_identity` y seed sintético. Auditoría de acceso
+  correcto/denegado en `AuditEvent`.
+- **Pendiente**: procedimientos y versiones reales en base de datos (PV-022), entornos autorizados
+  (PV-013), captura con extensión (PV-014–PV-021), runner Playwright (PV-028–PV-036).
 
 ## Empezar a trabajar
 
