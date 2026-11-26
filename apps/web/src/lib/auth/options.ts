@@ -4,7 +4,7 @@ import type { NextAuthOptions } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { z } from 'zod'
 import { recordLoginAudit } from './audit'
-import { checkLoginAttempt } from './rate-limit'
+import { checkLoginAttempt, clearLoginAttempts, recordLoginFailure } from './rate-limit'
 
 /**
  * Auth.js v4 con un único proveedor `Credentials` (ADR-011).
@@ -31,6 +31,69 @@ function clientKey(email: string, headers: Record<string, unknown> | undefined):
   return `${ip}:${email}`
 }
 
+type CredentialsInput = Record<string, unknown> | undefined
+type AuthorizeRequest = { headers?: Record<string, unknown> } | undefined
+
+async function authenticate(rawCredentials: CredentialsInput, request: AuthorizeRequest) {
+  const parsed = credentialsSchema.safeParse(rawCredentials)
+  if (!parsed.success) return null
+
+  const { email, password } = parsed.data
+  const key = clientKey(email, request?.headers)
+
+  if (checkLoginAttempt(key).blocked) {
+    await recordLoginAudit({ email, outcome: 'denied', reason: 'rate_limited' })
+    // Sentinela: el cliente decide el mensaje. Nunca se propaga el detalle interno.
+    throw new Error('RATE_LIMITED')
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: {
+      memberships: {
+        orderBy: { createdAt: 'asc' },
+        take: 1,
+        include: { workspace: { select: { id: true, name: true } } },
+      },
+    },
+  })
+
+  const passwordMatches = await verifyPassword(password, user?.passwordHash ?? DUMMY_HASH)
+  const membership = user?.memberships[0]
+
+  if (!user || !passwordMatches || user.status !== 'ACTIVE' || !membership) {
+    const status = recordLoginFailure(key)
+    await recordLoginAudit({
+      email,
+      outcome: 'denied',
+      reason: !user || !passwordMatches ? 'invalid_credentials' : 'no_membership',
+      userId: user?.id,
+      workspaceId: membership?.workspaceId,
+    })
+    if (status.blocked) throw new Error('RATE_LIMITED')
+    return null
+  }
+
+  clearLoginAttempts(key)
+  await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } })
+  await recordLoginAudit({
+    email,
+    outcome: 'allowed',
+    userId: user.id,
+    workspaceId: membership.workspaceId,
+  })
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    sessionVersion: user.sessionVersion,
+    workspaceId: membership.workspaceId,
+    workspaceName: membership.workspace.name,
+    role: membership.role,
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   session: { strategy: 'jwt', maxAge: 8 * 60 * 60, updateAge: 60 * 60 },
@@ -43,61 +106,20 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Contraseña', type: 'password' },
       },
       async authorize(rawCredentials, request) {
-        const parsed = credentialsSchema.safeParse(rawCredentials)
-        if (!parsed.success) return null
-
-        const { email, password } = parsed.data
-        const limit = checkLoginAttempt(clientKey(email, request?.headers))
-
-        if (!limit.allowed) {
-          await recordLoginAudit({ email, outcome: 'denied', reason: 'rate_limited' })
-          throw new Error('Demasiados intentos. Espera unos minutos.')
-        }
-
-        const user = await prisma.user.findUnique({
-          where: { email },
-          include: {
-            memberships: {
-              orderBy: { createdAt: 'asc' },
-              take: 1,
-              include: { workspace: { select: { id: true, name: true } } },
-            },
-          },
-        })
-
-        const passwordMatches = await verifyPassword(password, user?.passwordHash ?? DUMMY_HASH)
-        const membership = user?.memberships[0]
-
-        if (!user || !passwordMatches || user.status !== 'ACTIVE' || !membership) {
-          await recordLoginAudit({
-            email,
-            outcome: 'denied',
-            reason: !user || !passwordMatches ? 'invalid_credentials' : 'no_membership',
-            userId: user?.id,
-            workspaceId: membership?.workspaceId,
-          })
-          return null
-        }
-
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { lastLoginAt: new Date() },
-        })
-        await recordLoginAudit({
-          email,
-          outcome: 'allowed',
-          userId: user.id,
-          workspaceId: membership.workspaceId,
-        })
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          sessionVersion: user.sessionVersion,
-          workspaceId: membership.workspaceId,
-          workspaceName: membership.workspace.name,
-          role: membership.role,
+        try {
+          return await authenticate(
+            rawCredentials as CredentialsInput,
+            request as AuthorizeRequest | undefined,
+          )
+        } catch (error) {
+          if (error instanceof Error && error.message === 'RATE_LIMITED') throw error
+          // Un fallo inesperado (base caída, configuración ausente) no debe exponer rutas,
+          // SQL ni mensajes internos en la URL de error de Auth.js.
+          console.error(
+            'Fallo inesperado al autenticar:',
+            error instanceof Error ? error.message : error,
+          )
+          throw new Error('LOGIN_FAILED')
         }
       },
     }),

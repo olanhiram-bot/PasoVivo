@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start --hostname 127.0.0.1 --port 3000",
     "typecheck": "next typegen && tsc --noEmit",
-    "clean": "rm -rf .next"
+    "clean": "rm -rf .next",
+    "test": "vitest run"
   },
   "dependencies": {
     "@pasovivo/contracts": "workspace:*",
@@ -32,6 +33,7 @@
     "@types/node": "^26.6.11",
     "@types/react": "^19.3.3",
     "@types/react-dom": "^19.3.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^5.1.2"
   }
 }

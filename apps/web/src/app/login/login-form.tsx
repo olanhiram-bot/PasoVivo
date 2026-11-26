@@ -33,10 +33,14 @@ export function LoginForm({ notice }: LoginFormProps) {
 
     if (!result || result.error) {
       setPending(false)
+      // Solo los sentinelas del servidor mapean a mensajes concretos; el resto es genérico
+      // para no exponer detalles de configuración ni de la base de datos.
       setError(
-        result?.error?.toLowerCase().includes('demasiados')
-          ? 'Demasiados intentos fallidos. Espera unos minutos.'
-          : 'Correo o contraseña incorrectos.',
+        result?.error === 'RATE_LIMITED'
+          ? 'Demasiados intentos fallidos. Espera unos minutos antes de reintentar.'
+          : result?.error === 'CredentialsSignin'
+            ? 'Correo o contraseña incorrectos.'
+            : 'No se pudo iniciar sesión. Revisa los registros del servidor.',
       )
       return
     }
