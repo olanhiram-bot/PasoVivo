@@ -30,6 +30,9 @@ function loadScreens(): PrototypeScreen[] {
 const screens = loadScreens()
 const screenIds = new Set(screens.map((screen) => screen.id))
 
+/** `/login` pasó a ser el acceso real (PV-011): ya no es una pantalla del prototipo. */
+const PROTOTYPE_SCREENS = screens.filter((screen) => screen.id !== 'login')
+
 /** Recorrido principal: acceso -> publicación -> verificación -> resolución. */
 const MAIN_FLOW = [
   'onboarding',
@@ -58,10 +61,10 @@ async function hasHorizontalOverflow(page: Page): Promise<boolean> {
   })
 }
 
-test('las 27 pantallas del prototipo renderizan su contenido y sus enlaces', async ({ page }) => {
+test('las 26 pantallas del prototipo renderizan su contenido y sus enlaces', async ({ page }) => {
   test.slow()
 
-  for (const screen of screens) {
+  for (const screen of PROTOTYPE_SCREENS) {
     const response = await page.goto(`/${screen.id}`)
 
     expect(response?.status(), `estado de /${screen.id}`).toBe(200)
@@ -84,9 +87,9 @@ test('las 27 pantallas del prototipo renderizan su contenido y sus enlaces', asy
 })
 
 test('el recorrido principal enlaza los 17 estados aprobados', async ({ page }) => {
-  await page.goto('/login')
+  await page.goto('/onboarding')
 
-  for (const next of MAIN_FLOW) {
+  for (const next of MAIN_FLOW.slice(1)) {
     await page.locator(`main a[href="/${next}"]`).first().click()
     await expect(page).toHaveURL(new RegExp(`/${next}$`))
     await expect(page.locator('h1')).not.toBeEmpty()
