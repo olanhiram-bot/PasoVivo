@@ -1,9 +1,25 @@
 import 'reflect-metadata'
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { Logger } from '@nestjs/common'
 import { API_CONFIG, type ApiConfig } from './platform/config/api-config'
 import { createApplication } from './platform/bootstrap'
 
+/**
+ * El monorepo usa un único `.env` en la raíz. Nest arranca desde `apps/api`, así que
+ * se carga explícitamente; las variables ya definidas en el entorno tienen prioridad.
+ */
+function loadRootEnv(): void {
+  for (const candidate of [resolve(process.cwd(), '.env'), resolve(process.cwd(), '../../.env')]) {
+    if (!existsSync(candidate)) continue
+    process.loadEnvFile(candidate)
+    return
+  }
+}
+
 async function bootstrap(): Promise<void> {
+  loadRootEnv()
+
   const app = await createApplication()
   const config = app.get<ApiConfig>(API_CONFIG)
 
