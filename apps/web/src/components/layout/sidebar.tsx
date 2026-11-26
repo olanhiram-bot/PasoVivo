@@ -72,15 +72,21 @@ export function Sidebar({ activeNav }: { activeNav?: string }) {
         })}
       </nav>
 
-      <div className="mt-auto hidden border-t border-sidebar-border/70 px-4 py-3 md:block">
+      <div className="mt-auto border-t border-sidebar-border/70 px-4 py-3">
+        <Link
+          href="/guia"
+          className="block text-[12px] font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground"
+        >
+          Guía de uso
+        </Link>
         <Link
           href="/status"
-          className="text-[12px] font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground"
+          className="mt-1 block text-[12px] font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground"
         >
           Estado del sistema
         </Link>
-        <p className="mt-1 text-[11px] leading-relaxed text-sidebar-foreground/40">
-          Entorno de demostración · datos simulados
+        <p className="mt-2 text-[11px] leading-relaxed text-sidebar-foreground/40">
+          Prototipo · datos simulados
         </p>
       </div>
     </aside>
