@@ -17,8 +17,16 @@ sintéticos; la captura real, la autenticación y la persistencia están pendien
 ```sh
 pnpm install
 cp .env.example .env
+pnpm db:up          # PostgreSQL 17 en Docker, solo en 127.0.0.1
+pnpm db:migrate     # aplica las migraciones de Prisma
+pnpm db:seed        # cuentas sintéticas (ver abajo)
 pnpm dev
 ```
+
+Cuentas del seed, solo para uso local: `admin@pasovivo.test`, `editor@pasovivo.test` y
+`lector@pasovivo.test` con contraseñas de desarrollo (`admin-local-2026`, `editor-local-2026`,
+`lector-local-2026`); se pueden cambiar con `SEED_*_PASSWORD` antes de sembrar. El inicio de sesión
+real todavía no está conectado: llega con PV-011 (Auth.js, ver [ADR-011](docs/adr/ADR-011-autenticacion-authjs.md)).
 
 - Dashboard: <http://127.0.0.1:3000/login> · panel directo en <http://127.0.0.1:3000/dashboard>
 - Diagnóstico real del API: <http://127.0.0.1:3000/status>
@@ -31,7 +39,11 @@ Tareas por separado: `pnpm dev:web` y `pnpm dev:api`.
 ```
 apps/web              Dashboard Next.js 16 + Tailwind 4 + shadcn/ui (src/app, components, features, lib)
 apps/api              API NestJS 12 modular (platform + modules/<dominio>)
+apps/demo-target      Fixture sintético V1/V2 para verificación (PV-003)
 packages/contracts    Esquemas Zod, tipos y rutas /api/v1 compartidos
+packages/database     Prisma 6: esquema, migraciones y seed de PostgreSQL
+packages/security     KDF scrypt y tokens opacos (sin dependencias nativas)
+infra/compose         Docker Compose de desarrollo (PostgreSQL)
 tests/e2e             Playwright: pantallas del prototipo y /status (hasta retirar la demo)
 docs/                 ADR, arquitectura, product, qa y research
 PasoVivo_Figma/       Especificación de diseño: 27 pantallas y su navegación (sin runtime)
@@ -85,8 +97,10 @@ son lucide y las etiquetas de dato van en monoespaciada. Detalle en
   paginación por cursor). Datos sintéticos en memoria detrás del puerto `ProcedureRepository`.
 - **Contratos**: un único cuerpo de error (`code`, `message`, `status`, `requestId`, `details`) y
   validación de respuestas en el cliente del dashboard.
-- **Pendiente**: autenticación y roles (PV-011), PostgreSQL/Prisma (PV-008, PV-010), captura con
-  extensión (PV-014–PV-021), runner Playwright (PV-028–PV-036).
+- **Datos**: PostgreSQL 17 en Compose y esquema Prisma de identidad (`User`, `Workspace`,
+  `Membership`, `AuditEvent`) con migración `init_identity` y seed sintético.
+- **Pendiente**: login real y roles (PV-011, Auth.js decidido en ADR-011), tablas de procedimientos y
+  versiones (PV-022), captura con extensión (PV-014–PV-021), runner Playwright (PV-028–PV-036).
 
 ## Empezar a trabajar
 

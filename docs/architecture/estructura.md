@@ -29,9 +29,12 @@ pasovivo/
 │   │   └── test/               # e2e HTTP con supertest y contratos
 │   └── demo-target/            # Fixture V1/V2 (PV-003, pendiente de implementación)
 ├── packages/
-│   └── contracts/              # Zod + tipos + rutas /api/v1 (@pasovivo/contracts)
+│   ├── contracts/              # Zod + tipos + rutas /api/v1 (@pasovivo/contracts)
+│   ├── database/               # Prisma 6: esquema, migración init_identity y seed (@pasovivo/database)
+│   └── security/               # scrypt y tokens opacos (@pasovivo/security)
 ├── tests/e2e/                  # Playwright: prototipo (27 pantallas) y /status
 ├── docs/{adr,architecture,product,qa,research}/
+├── infra/compose/              # docker-compose.dev.yml (PostgreSQL 17, solo loopback)
 ├── flujos/ · PasoVivo_Figma/   # Especificación de diseño (sin runtime): ver docs/product/diseno.md
 ├── playwright.config.ts · turbo.json · tsconfig.base.json · eslint.config.mjs
 └── package.json · pnpm-workspace.yaml · pnpm-lock.yaml · .env.example
@@ -89,6 +92,19 @@ Tailwind CSS 4 con tokens en `apps/web/src/app/globals.css` y primitivas shadcn/
    o a `packages/ui` cuando exista la necesidad real (§7.1).
 4. Toda respuesta del API se valida con el esquema de contratos antes de renderizarse.
 5. Nada de CSS nuevo por pantalla: si falta un estilo, se añade un token o una variante con `cva`.
+
+## Datos e identidad
+
+PostgreSQL 17 en `infra/compose/docker-compose.dev.yml` (127.0.0.1:5432, volumen nombrado, healthcheck).
+Prisma 6 en `packages/database`: migración `init_identity` con `User` (hash scrypt, `sessionVersion`
+para revocar), `Workspace`, `Membership` con rol (`ADMIN|EDITOR|READER`) y `AuditEvent`.
+El seed es idempotente y usa datos sintéticos; las contraseñas de desarrollo se documentan en
+`.env.example` y se pueden sustituir por entorno. Las tablas de procedimientos, capturas y runs
+llegan con sus issues (§8.1), no antes.
+
+La autenticación se decide en [ADR-011](../adr/ADR-011-autenticacion-authjs.md): Auth.js v4 con
+`Credentials` y sesión JWT, revocación por `sessionVersion`, y un JWT de servicio firmado por el
+dashboard para llamar al API. Todavía no está implementada (PV-011).
 
 ## Seguridad y operación
 

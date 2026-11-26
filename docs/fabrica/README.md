@@ -62,7 +62,7 @@ El orden sigue §18.1: E1 desbloquea la fundación, y cada ola deja evidencia ve
 | Ola | Issues | Salida |
 |---|---|---|
 | Ola 1 (E1) | PV-003, PV-005, PV-006 | Fixture reproducible + detección de cambio + controles de aislamiento → evidencia de G1 |
-| Ola 2 (E2) | PV-008, PV-010, PV-011, PV-013 | PostgreSQL, migraciones, sesión/roles, entornos autorizados |
+| Ola 2 (E2) | PV-008, PV-010, PV-011, PV-013 | PostgreSQL y migración de identidad **listos**; Auth.js decidido en ADR-011; pendiente el login real y los entornos autorizados |
 | Ola 3 (E3/E4) | PV-014–PV-021, PV-022–PV-027 | Captura con extensión y procedimientos versionados |
 | Ola 4 (E5/E6) | PV-028–PV-040 | Runner, resultados, incidencias y ciclo completo |
 
